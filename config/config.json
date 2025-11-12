@@ -1,3 +1,13 @@
 {
-    
+    "ETL": {
+        "processes": [
+            {
+                "name": "ExampleETLProcess",
+                "description": "An example ETL process configuration",
+                "source": {},
+                "transformation": {},
+                "destination": {}
+            }
+        ]
+    }
 }

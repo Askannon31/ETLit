@@ -1,0 +1,23 @@
+{
+    "type": "gevisapi",
+    "name": "My Gevis API Source",
+    "authorization": {
+        "client_id": "your_client_id",
+        "client_secret": "your_client_secret"
+    },
+    "base_url": "https://10892-test.dynamicstocloud.com:1103/ST-123456",
+    "endpoint": "/api/gws/ecm/v1.0/itemLedgerEntries",
+    "query_parameters": {
+        "company": "MyCompany",
+        "$fileter": "dmsNo eq '123456789'"
+    },
+    "mapping": {
+        "lfdNr": 0,
+            "id": "id",
+            "documentNo": "no",
+            "documentDate": "date",
+            "dmsNo": "dokuid",
+            "ledgerAccount": "account",
+            "CostAccountCode": "costaccount"
+    }
+}
