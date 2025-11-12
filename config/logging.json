@@ -1,0 +1,36 @@
+{
+	"version": 1,
+	"disable_existing_loggers": false,
+	"formatters": {
+		"verbose": {
+			"format": "%(asctime)s - %(levelname)s - %(module)s\t - %(message)s"
+		},
+		"default": {
+			"format": "%(asctime)s - %(levelname)s -  %(module)s\t - %(message)s"
+		},
+		"simple": {
+			"format": "%(asctime)s - %(levelname)s - %(message)s"
+		}
+	},
+	"handlers": {
+		"console": {
+			"level": "DEBUG",
+			"class": "logging.StreamHandler",
+			"formatter": "simple"
+		},
+		"file": {
+			"level": "INFO",
+			"class": "logging.handlers.RotatingFileHandler",
+			"maxBytes": 1048576,
+			"backupCount": 5,
+			"filename": "logs/logging.log",
+			"formatter": "verbose"
+		}
+	},
+	"loggers": {
+		"": {
+			"handlers": ["file", "console"],
+			"level": "DEBUG"
+		}
+	}
+}

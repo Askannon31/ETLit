@@ -1,0 +1,14 @@
+# VENV
+venv/*
+.venv/*
+
+# Python
+*.pyc
+
+# Project
+log/*
+logs/*
+data/*
+
+# MacOs
+.DS_Store
