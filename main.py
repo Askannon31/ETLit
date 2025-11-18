@@ -52,6 +52,7 @@ if __name__ == "__main__":
 
         # ETL Extract
         extract_config: dict = process_config.get("extraction", {})
+        data: dict = None
         try:
             from scripts.classes.ETLExtract import ETLExtractFactory
 
@@ -60,9 +61,12 @@ if __name__ == "__main__":
 
             if extractor.setup():
                 log.info(f"Extractor setup successful for process: {process_name}")
-                data: dict = extractor.extract()
+                data = extractor.extract()
                 log.info(f"Extracted data for process {process_name}: {data}")
             else:
                 log.error(f"Extractor setup failed for process: {process_name}")
         except Exception as e:
             log.error(f"Exception during extraction for process {process_name}: {e}")
+
+        # ETL Transform
+        # TODO: Implement transformation logic here - Currently skipping this step
