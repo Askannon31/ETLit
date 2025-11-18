@@ -23,9 +23,14 @@ from scripts.utils.logger import setup_logger
 ####################################################################################################
 #                                            Setup                                                 #
 ####################################################################################################
+# Loat .env file
+from dotenv import load_dotenv
+load_dotenv()
+
+
 # Load Config
-with open("config/config.json", "rt") as file:
-    config = json.load(file)
+from config.config import config
+
 
 # Setup Logger
 with open("config/logging.json", "rt") as file:
@@ -38,3 +43,26 @@ log = logging.getLogger(__name__)
 ####################################################################################################
 if __name__ == "__main__":
     log.info("-------------------- Start Script --------------------")
+    processes: list = config.get("ETL", {}).get("processes", [])
+    log.info(f"Loaded {len(processes)} processes from configuration.")
+
+    for process_config in processes:
+        process_name: str = process_config.get("name", "UnnamedProcess")
+        log.info(f"Starting process: {process_name}")
+
+        # ETL Extract
+        extract_config: dict = process_config.get("extraction", {})
+        try:
+            from scripts.classes.ETLExtract import ETLExtractFactory
+
+            extractor = ETLExtractFactory.create_extractor(extract_config)
+            log.info(f"Created extractor: {extractor}")
+
+            if extractor.setup():
+                log.info(f"Extractor setup successful for process: {process_name}")
+                data: dict = extractor.extract()
+                log.info(f"Extracted data for process {process_name}: {data}")
+            else:
+                log.error(f"Extractor setup failed for process: {process_name}")
+        except Exception as e:
+            log.error(f"Exception during extraction for process {process_name}: {e}")

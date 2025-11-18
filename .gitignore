@@ -1,6 +1,7 @@
 # VENV
 venv/*
 .venv/*
+.env
 
 # Python
 *.pyc
