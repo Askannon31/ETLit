@@ -32,7 +32,60 @@ config: dict = {
                     }
                 },
                 "transformation": {},
-                "destination": {}
+                "loading": {
+                    "type": "d3businessobjects",
+                    "name": "My D3 Business Objects Source",
+                    "base_url": os.environ.get("D3_API_BASE_URL"),
+                    "api_key": os.environ.get("D3_API_KEY"),
+                    "model": "latescanning",
+                    "entity": {
+                        "name": "ItemLedgerEntry",
+                        "plural": "ItemLedgerEntries",
+                        "definition": {
+                            "name": "ItemLedgerEntry",
+                            "pluralName": "ItemLedgerEntries",
+                            "description": "ItemLedgerEntries entity type",
+                            "state": "published",
+                            "key": {
+                                "name": "id",
+                                "type": "string",
+                                "state": "published"
+                            },
+                            "properties": [
+                                {
+                                    "name": "no",
+                                    "type": "string",
+                                    "state": "published"
+                                },
+                                {
+                                    "name": "documentDate",
+                                    "type": "date",
+                                    "state": "published"
+                                },
+                                {
+                                    "name": "dmsNo",
+                                    "type": "string",
+                                    "state": "published"
+                                },
+                                {
+                                    "name": "ledgerAccount",
+                                    "type": "string",
+                                    "state": "published"
+                                },
+                                {
+                                    "name": "costAccountCode",
+                                    "type": "string",
+                                    "state": "published"
+                                },
+                                {
+                                    "name": "companyName",
+                                    "type": "string",
+                                    "state": "published"
+                                }
+                            ]
+                        }
+                    }
+                }
             }
         ]
     }

@@ -6,6 +6,8 @@ import json
 import logging
 import requests
 
+from scripts.classes.ETLExtract import ETLExtractBase
+
 ########################################################################################################################
 #                                                          Setup                                                       #
 ########################################################################################################################
@@ -16,9 +18,9 @@ log = logging.getLogger(__name__)
 ########################################################################################################################
 #                                                  ETLExtractGevisApi                                                  #
 ########################################################################################################################
-class ETLExtractGevisApi():
+class ETLExtractGevisApi(ETLExtractBase):
     def __init__(self, config):
-        self.config = config
+        super().__init__(config)
         self.name = config.get("name", "ETLExtractGevisApi")
         self.debug = config.get("debug", False)
         self.api = {
