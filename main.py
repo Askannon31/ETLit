@@ -11,6 +11,8 @@
 import json
 import logging
 import logging.config
+import time
+
 
 from scripts.utils.logger import setup_logger
 
@@ -64,8 +66,12 @@ if __name__ == "__main__":
 
             if extractor.setup():
                 log.info(f"Extractor setup successful for process: {process_name}")
+                extract_start_time = time.time()
                 data = extractor.extract()
-                log.info(f"Extracted data for process {process_name}: {data}")
+                extract_end_time = time.time()
+                extract_duration = extract_end_time - extract_start_time
+                log.info(f"Extracted data for process {process_name}: {len(data.get('items', []))} items")
+                log.info(f"Extraction duration for process {process_name}: {extract_duration:.2f} seconds")
             else:
                 log.error(f"Extractor setup failed for process: {process_name}")
         except Exception as e:
@@ -85,8 +91,12 @@ if __name__ == "__main__":
                 if transformer.setup():
                     log.info(f"Transformer setup successful for process: {process_name}")
                     if data is not None:
+                        transform_start_time = time.time()
                         data = transformer.transform(data)
-                        log.info(f"Transformed data for process {process_name}: {data}")
+                        transform_end_time = time.time()
+                        transform_duration = transform_end_time - transform_start_time
+                        log.info(f"Transformed data for process {process_name}: {len(data.get('items', []))} items")
+                        log.info(f"Transformation duration for process {process_name}: {transform_duration:.2f} seconds")
                     else:
                         log.error(f"No data to transform for process: {process_name}")
                 else:
@@ -106,8 +116,12 @@ if __name__ == "__main__":
             if loader.setup():
                 log.info(f"Loader setup successful for process: {process_name}")
                 if data is not None:
+                    load_start_time = time.time()
                     load_result = loader.load(data)
-                    log.info(f"Loaded data for process {process_name}: {load_result}")
+                    load_end_time = time.time()
+                    load_duration = load_end_time - load_start_time
+                    log.info(f"Loaded data for process {process_name}:")
+                    log.info(f"Load duration for process {process_name}: {load_duration:.2f} seconds")
                 else:
                     log.error(f"No data to load for process: {process_name}")
             else:

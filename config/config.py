@@ -20,7 +20,7 @@ config: dict = {
                     "endpoint": "/api/gws/ecm/v1.0/itemLedgerEntries",
                     "query_parameters": {
                         "company": "Raiff. Delbrück",
-                        "$filter": "systemModifiedAt gt 2025-01-01T11:47:03.117Z"
+                        "$filter": "systemModifiedAt gt 2025-10-01T11:47:03.117Z"
                     },
                     "mapping": {
                         "lfdNr": "lfdNr",
@@ -46,7 +46,7 @@ config: dict = {
                     "name": "My D3 Business Objects Source",
                     "base_url": os.environ.get("D3_API_BASE_URL"),
                     "api_key": os.environ.get("D3_API_KEY"),
-                    "batch_size": 50,
+                    "batch_size": 100,
                     "model": "latescanning",
                     "truncate_before_load": True,
                     "entity": {

@@ -1,4 +1,9 @@
-
+########################################################################################################################
+#                                                          Setup                                                       #
+########################################################################################################################
+# Setup Logger
+import logging
+log = logging.getLogger(__name__)
 
 def transform_items(data, config) -> dict:
     """
@@ -22,4 +27,13 @@ def transform_items(data, config) -> dict:
         
         transformed_items.append(transformed_item)
     
-    return {"items": transformed_items}
+    # Filter items:
+    # Many entries have the save "no" and "dmsNo" -> keep only the latest modified one
+    filtered_items = {}
+    for item in transformed_items:
+        key = (item.get("no"), item.get("dmsNo"))
+        existing_item = filtered_items.get(key)
+        if existing_item is None or item.get("systemModifiedAt", "") > existing_item.get("systemModifiedAt", ""):
+            filtered_items[key] = item
+
+    return {"items": list(filtered_items.values())}

@@ -83,6 +83,22 @@ class ETLExtractGevisApi(ETLExtractBase):
         response = requests.get(request_url, headers=headers)
         if response.status_code == 200:
             data: dict = response.json()
+
+            # Check for pagination
+            while "@odata.nextLink" in data:
+                next_link: str = data["@odata.nextLink"]
+                log.debug(f"Fetching next page of data from: {next_link}")
+                response = requests.get(next_link, headers=headers)
+                if response.status_code == 200:
+                    next_page_data: dict = response.json()
+                    data["value"].extend(next_page_data.get("value", []))
+                    data["@odata.nextLink"] = next_page_data.get("@odata.nextLink", None)
+                    if data["@odata.nextLink"] is None:
+                        del data["@odata.nextLink"]
+                else:
+                    log.error(f"Failed to fetch next page of data. Status code: {response.status_code}")
+                    break
+
             log.info(f"Successfully extracted data from {self}")
             if self.debug:
                 self.save_debug_data(data)
