@@ -6,7 +6,7 @@ config: dict = {
             {
                 "name": "ExampleETLProcess",
                 "description": "An example ETL process configuration",
-                "active": True,
+                "active": False,
                 "extraction": {
                     "type": "gevisapi",
                     "name": "Delbrueck Item Ledger Entries",
@@ -149,71 +149,87 @@ config: dict = {
                     "config": {}
                 },
                 "loading": {
-                    "type": "d3businessobjects",
-                    "name": "My D3 Business Objects Source",
-                    "base_url": os.environ.get("D3_API_BASE_URL"),
-                    "api_key": os.environ.get("D3_API_KEY"),
-                    "batch_size": 10,
-                    "model": "latescanning",
-                    "truncate_before_load": True,
-                    "entity": {
-                        "name": "ItemLedgerEntry",
-                        "plural": "ItemLedgerEntries",
-                        "definition": {
-                            "name": "ItemLedgerEntry",
-                            "pluralName": "ItemLedgerEntries",
-                            "description": "ItemLedgerEntries entity type",
-                            "state": "published",
-                            "key": {
-                                "name": "id",
-                                "type": "string",
-                                "state": "published"
-                            },
-                            "properties": [
-                                {
-                                    "name": "no",
-                                    "type": "string",
-                                    "state": "published"
-                                },
-                                {
-                                    "name": "documentDate",
-                                    "type": "date",
-                                    "state": "published"
-                                },
-                                {
-                                    "name": "dmsNo",
-                                    "type": "string",
-                                    "state": "published"
-                                },
-                                {
-                                    "name": "ledgerAccount",
-                                    "type": "string",
-                                    "state": "published"
-                                },
-                                {
-                                    "name": "costAccountCode",
-                                    "type": "string",
-                                    "state": "published"
-                                },
-                                {
-                                    "name": "companyName",
-                                    "type": "string",
-                                    "state": "published"
-                                }
-                            ]
-                        }
+                    "type": "mssql",
+                    "name": "Insert Data into a MSSQL Database Table",
+                    "connection": {
+                        "server": "dms-dev",
+                        "database": "masterdata",
+                        "username": os.environ.get("MSSQL_USERNAME", "your_username"),
+                        "password": os.environ.get("MSSQL_PASSWORD", "your_password")
+                    },
+                    "table": "ETLitTest",
+                    "insert_statement": "INSERT INTO ETLitTest (id, lfdNr, no, date, dokuid, account, costaccount, company) VALUES ('@TargetField1', '@TargetField2', '@TargetField3', '@TargetField4', '@TargetField5', '@TargetField6', '@TargetField7', '@TargetField8')",
+                    "mappings": {
+                        "id": "TargetField1",
+                        "lfdNr": "TargetField2",
+                        "no": "TargetField3",
+                        "date": "TargetField4",
+                        "dokuid": "TargetField5",
+                        "account": "TargetField6",
+                        "costaccount": "TargetField7",
+                        "company": "TargetField8"
+                    }
+                }
+            },
+            {
+                "name": "ExampleETLProcess CSV-File",
+                "description": "An example ETL process configuration with CSV file extraction",
+                "active": True,
+                "extraction": {
+                    "type": "gevisapi",
+                    "name": "Delbrueck Item Ledger Entries",
+                    "debug": True,
+                    "authorization": {
+                        "client_id": os.environ.get("GEVIS_API_CLIENT_ID"),
+                        "client_secret": os.environ.get("GEVIS_API_CLIENT_SECRET")
+                    },
+                    "erp_tenant_id": os.environ.get("GEVIS_API_ERP_TENANT_ID"),
+                    "base_url": os.environ.get("GEVIS_API_BASE_URL"),
+                    "endpoint": "/api/gws/ecm/v1.0/itemLedgerEntries",
+                    "query_parameters": {
+                        "company": "Raiff. Delbrück",
+                        "$filter": "systemModifiedAt gt 2025-10-01T11:47:03.117Z"
                     },
                     "mapping": {
-                        "id": "lfdNr",
+                        "lfdNr": "lfdNr",
                         "id": "id",
-                        "no": "no",
-                        "date": "documentDate",
-                        "dokuid": "dmsNo",
-                        "account": "ledgerAccount",
-                        "costaccount": "costAccountCode",
-                        "company": "companyName"
+                        "documentNo": "no",
+                        "documentDate": "date",
+                        "dmsNo": "dokuid",
+                        "ledgerAccount": "account",
+                        "CostAccountCode": "costaccount"
                     }
-
+                },
+                "transformation": {
+                    "type": "hookfunction",
+                    "name": "transform_hookfunction",
+                    "description": "A hook function to transform data items before loading into D3 Business Objects",
+                    "debug": True,
+                    "hook_file": "scripts/hooks/transform_hooks.py",
+                    "function_name": "transform_items",
+                    "config": {}
+                },
+                "loading": {
+                    "type": "mssql",
+                    "name": "Insert Data into a MSSQL Database Table",
+                    "connection": {
+                        "server": "dms-dev",
+                        "database": "masterdata",
+                        "username": os.environ.get("MSSQL_USERNAME", "your_username"),
+                        "password": os.environ.get("MSSQL_PASSWORD", "your_password")
+                    },
+                    "table": "ETLitTest",
+                    "insert_statement": "INSERT INTO ETLitTest (id, lfdNr, no, date, dokuid, account, costaccount, company) VALUES ('@TargetField1', '@TargetField2', '@TargetField3', '@TargetField4', '@TargetField5', '@TargetField6', '@TargetField7', '@TargetField8')",
+                    "mappings": {
+                        "id": "TargetField1",
+                        "lfdNr": "TargetField2",
+                        "no": "TargetField3",
+                        "date": "TargetField4",
+                        "dokuid": "TargetField5",
+                        "account": "TargetField6",
+                        "costaccount": "TargetField7",
+                        "company": "TargetField8"
+                    }
                 }
             }
         ]

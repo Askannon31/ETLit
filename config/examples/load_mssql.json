@@ -1,0 +1,17 @@
+{
+    "type": "mssql",
+    "name": "Insert Data into a MSSQL Database Table",
+    "connection": {
+        "server": "your_server.database.windows.net",
+        "database": "your_database",
+        "username": "your_username",
+        "password": "your_password"
+    },
+    "table": "YourTargetTable",
+    "insert_statement": "INSERT INTO YourTargetTable (TargetColumn1, TargetColumn2, TargetColumn3) VALUES (@SourceField1, @SourceField2, @SourceField3)",
+    "mappings": {
+        "SourceField1": "TargetColumn1",
+        "SourceField2": "TargetColumn2",
+        "SourceField3": "TargetColumn3"
+    }
+}
