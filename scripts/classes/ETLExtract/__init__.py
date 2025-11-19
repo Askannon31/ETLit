@@ -4,6 +4,7 @@
 import json
 from scripts.classes.ETLExtract.ETLExtractBase import ETLExtractBase
 from scripts.classes.ETLExtract.ETLExtractGevisApi import ETLExtractGevisApi
+from scripts.classes.ETLExtract.ETLExtractCSVFile import ETLExtractCSVFile
 
 
 class ETLExtractFactory:
@@ -15,5 +16,7 @@ class ETLExtractFactory:
         extractor_type = config.get("type")
         if extractor_type == "gevisapi":
             return ETLExtractGevisApi(config)
+        elif extractor_type == "csvfile":
+            return ETLExtractCSVFile(config)
         else:
             raise ValueError(f"Unknown ETLExtract type: {extractor_type}")

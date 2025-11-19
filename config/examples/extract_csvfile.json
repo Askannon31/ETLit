@@ -1,0 +1,26 @@
+{
+    "type": "csvfile",
+    "file_path": "data/input/data.csv",
+    "save_path": "data/save",
+    "delimiter": ";",
+    "encoding": "utf-8",
+    "columns": [
+        "lfdNr",
+        "id",
+        "no",
+        "date",
+        "dokuid",
+        "account",
+        "costaccount"
+    ],
+    "mapping": {
+        "lfdNr": "lfdNr",
+        "id": "id",
+        "no": "no",
+        "date": "date",
+        "dokuid": "dokuid",
+        "account": "account",
+        "costaccount": "costaccount"
+    },
+    "debug": true
+}
