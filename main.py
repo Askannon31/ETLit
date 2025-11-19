@@ -48,6 +48,9 @@ if __name__ == "__main__":
 
     for process_config in processes:
         process_name: str = process_config.get("name", "UnnamedProcess")
+        if not process_config.get("active", False):
+            log.info(f"Skipping inactive process: {process_name}")
+            continue
         log.info(f"Starting process: {process_name}")
 
         # ETL Extract
@@ -70,3 +73,23 @@ if __name__ == "__main__":
 
         # ETL Transform
         # TODO: Implement transformation logic here - Currently skipping this step
+
+        # ETL Load
+        load_config: dict = process_config.get("loading", {})
+        try:
+            from scripts.classes.ETLLoad import ETLLoadFactory
+
+            loader = ETLLoadFactory.create_loader(load_config)
+            log.info(f"Created loader: {loader}")
+
+            if loader.setup():
+                log.info(f"Loader setup successful for process: {process_name}")
+                if data is not None:
+                    load_result = loader.load(data)
+                    log.info(f"Loaded data for process {process_name}: {load_result}")
+                else:
+                    log.error(f"No data to load for process: {process_name}")
+            else:
+                log.error(f"Loader setup failed for process: {process_name}")
+        except Exception as e:
+            log.error(f"Exception occurred while loading data for process {process_name}: {e}")
