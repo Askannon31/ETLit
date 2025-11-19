@@ -54,7 +54,7 @@ if __name__ == "__main__":
         extract_config: dict = process_config.get("extraction", {})
         data: dict = None
         
-        with open("debug\Delbrueck Item Ledger Entries_2025-11-18_10-35-57_debug_mapped_data.json", "rt") as file:
+        with open("debug\Delbrueck Item Ledger Entries_2025-11-19_08-27-42_debug_mapped_data.json", "rt") as file:
             data = json.load(file)
         log.info(f"Extracted {len(data.get('mapped_data', []))} items from source.")
 

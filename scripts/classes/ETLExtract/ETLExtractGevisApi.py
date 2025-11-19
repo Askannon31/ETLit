@@ -123,7 +123,7 @@ class ETLExtractGevisApi(ETLExtractBase):
                 mapped_item[target_field] = item.get(source_field, None)
             mapped_data.append(mapped_item)
         log.info(f"Successfully executed mapping for {self}")
-        return {"mapped_data": mapped_data}
+        return {"items": mapped_data}
     
     def save_debug_data(self, data: dict):
         """

@@ -22,7 +22,7 @@ config: dict = {
                         "$filter": "dmsNo eq '00109437'"
                     },
                     "mapping": {
-                        "lfdNr": 0,
+                        "lfdNr": "lfdNr",
                         "id": "id",
                         "documentNo": "no",
                         "documentDate": "date",
@@ -37,6 +37,7 @@ config: dict = {
                     "name": "My D3 Business Objects Source",
                     "base_url": os.environ.get("D3_API_BASE_URL"),
                     "api_key": os.environ.get("D3_API_KEY"),
+                    "batch_size": 10,
                     "model": "latescanning",
                     "entity": {
                         "name": "ItemLedgerEntry",
@@ -84,7 +85,17 @@ config: dict = {
                                 }
                             ]
                         }
+                    },
+                    "mapping": {
+                        "id": "lfdNr",
+                        "id": "id",
+                        "no": "no",
+                        "date": "documentDate",
+                        "dokuid": "dmsNo",
+                        "account": "ledgerAccount",
+                        "costaccount": "costAccountCode"
                     }
+
                 }
             }
         ]
