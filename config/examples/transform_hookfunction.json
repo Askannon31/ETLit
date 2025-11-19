@@ -1,0 +1,9 @@
+{
+    "type": "hookfunction",
+    "name": "transform_hookfunction",
+    "description": "A hook function to transform data items before loading into D3 Business Objects",
+    "debug": true,
+    "hook_file": "scripts/hooks/transform_hooks.py",
+    "function_name": "transform_items",
+    "config": {}
+}

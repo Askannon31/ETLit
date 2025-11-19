@@ -70,9 +70,30 @@ if __name__ == "__main__":
                 log.error(f"Extractor setup failed for process: {process_name}")
         except Exception as e:
             log.error(f"Exception during extraction for process {process_name}: {e}")
+            continue
 
         # ETL Transform
-        # TODO: Implement transformation logic here - Currently skipping this step
+        transform_config: dict = process_config.get("transformation", {})
+        # Only perform transformation if config is provided
+        if not transform_config:
+            log.info(f"No transformation configuration provided for process: {process_name}. Skipping transformation.")
+        else:
+            try:
+                from scripts.classes.ETLTransform import ETLTransformFactory
+                transformer = ETLTransformFactory.create_transformer(transform_config)
+                log.info(f"Created transformer: {transformer}")
+                if transformer.setup():
+                    log.info(f"Transformer setup successful for process: {process_name}")
+                    if data is not None:
+                        data = transformer.transform(data)
+                        log.info(f"Transformed data for process {process_name}: {data}")
+                    else:
+                        log.error(f"No data to transform for process: {process_name}")
+                else:
+                    log.error(f"Transformer setup failed for process: {process_name}")
+            except Exception as e:
+                log.error(f"Exception during transformation for process {process_name}: {e}")
+                continue
 
         # ETL Load
         load_config: dict = process_config.get("loading", {})

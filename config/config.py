@@ -6,7 +6,7 @@ config: dict = {
             {
                 "name": "ExampleETLProcess",
                 "description": "An example ETL process configuration",
-                "active": False,
+                "active": True,
                 "extraction": {
                     "type": "gevisapi",
                     "name": "Delbrueck Item Ledger Entries",
@@ -20,7 +20,7 @@ config: dict = {
                     "endpoint": "/api/gws/ecm/v1.0/itemLedgerEntries",
                     "query_parameters": {
                         "company": "Raiff. Delbrück",
-                        "$filter": "dmsNo eq '00109437'"
+                        "$filter": "systemModifiedAt gt 2025-01-01T11:47:03.117Z"
                     },
                     "mapping": {
                         "lfdNr": "lfdNr",
@@ -32,13 +32,21 @@ config: dict = {
                         "CostAccountCode": "costaccount"
                     }
                 },
-                "transformation": {},
+                "transformation": {
+                    "type": "hookfunction",
+                    "name": "transform_hookfunction",
+                    "description": "A hook function to transform data items before loading into D3 Business Objects",
+                    "debug": True,
+                    "hook_file": "scripts/hooks/transform_hooks.py",
+                    "function_name": "transform_items",
+                    "config": {}
+                },
                 "loading": {
                     "type": "d3businessobjects",
                     "name": "My D3 Business Objects Source",
                     "base_url": os.environ.get("D3_API_BASE_URL"),
                     "api_key": os.environ.get("D3_API_KEY"),
-                    "batch_size": 10,
+                    "batch_size": 50,
                     "model": "latescanning",
                     "truncate_before_load": True,
                     "entity": {
@@ -95,7 +103,8 @@ config: dict = {
                         "date": "documentDate",
                         "dokuid": "dmsNo",
                         "account": "ledgerAccount",
-                        "costaccount": "costAccountCode"
+                        "costaccount": "costAccountCode",
+                        "company": "companyName"
                     }
 
                 }
@@ -103,7 +112,7 @@ config: dict = {
             {
                 "name": "ExampleETLProcess CSV-File",
                 "description": "An example ETL process configuration with CSV file extraction",
-                "active": True,
+                "active": False,
                 "extraction": {
                     "type": "csvfile",
                     "file_path": "data/input/data.csv",
@@ -130,7 +139,15 @@ config: dict = {
                     },
                     "debug": True
                 },
-                "transformation": {},
+                "transformation": {
+                    "type": "hookfunction",
+                    "name": "transform_hookfunction",
+                    "description": "A hook function to transform data items before loading into D3 Business Objects",
+                    "debug": True,
+                    "hook_file": "scripts/hooks/transform_hooks.py",
+                    "function_name": "transform_items",
+                    "config": {}
+                },
                 "loading": {
                     "type": "d3businessobjects",
                     "name": "My D3 Business Objects Source",
@@ -193,7 +210,8 @@ config: dict = {
                         "date": "documentDate",
                         "dokuid": "dmsNo",
                         "account": "ledgerAccount",
-                        "costaccount": "costAccountCode"
+                        "costaccount": "costAccountCode",
+                        "company": "companyName"
                     }
 
                 }
