@@ -1,0 +1,25 @@
+{
+    "type": "mssql",
+    "name": "Extract Data from a MSSQL Database Table",
+    "connection": {
+        "server": "your_server.database.windows.net",
+        "database": "your_database",
+        "username": "your_username",
+        "password": "your_password"
+    },
+    "query": "SELECT * FROM your_table",
+    "mapping": [
+        {
+            "target_field": "Field1",
+            "data_type": "string"
+        },
+        {
+            "target_field": "Field2",
+            "data_type": "integer"
+        },
+        {
+            "target_field": "Field3",
+            "data_type": "datetime"
+        }
+    ]
+}
