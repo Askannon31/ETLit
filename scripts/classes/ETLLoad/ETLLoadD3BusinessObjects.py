@@ -27,6 +27,7 @@ class ETLLoadD3BusinessObjects(ETLLoadBase):
             "definition": config.get("entity", {}).get("definition", {})
         }
         self.batch_size = config.get("batch_size", 1)
+        self.truncate_entity_before_load = config.get("truncate_before_load", False)
         self.mapping = config.get("mapping", {})
 
         log.info(f"Initialized ETLLoadD3BusinessObjects with name: {self.name}")
@@ -237,6 +238,12 @@ class ETLLoadD3BusinessObjects(ETLLoadBase):
             log.warning("No items to load")
             return True
         
+        if self.truncate_entity_before_load:
+            truncated = self.truncate_entity()
+            if not truncated:
+                log.error("Failed to truncate entity before load")
+                return False
+        
         # Get entity key configuration from config or use default
         entity_key_field = data.get('entity_key_field', 'id')
         entity_key_type = data.get('entity_key_type', 'String')
@@ -293,3 +300,29 @@ class ETLLoadD3BusinessObjects(ETLLoadBase):
                 mapped_item[target_field] = item.get(source_field)
             mapped_items.append(mapped_item)
         return mapped_items
+
+    def truncate_entity(self) -> bool:
+        """
+        Truncate the entity data before loading new data.
+        
+        Returns:
+            True if successful, False otherwise
+        """
+        log.info(f"Truncating entity '{self.entity['name']}' in model '{self.model}'")
+        
+        # Build the delete request payload
+        url: str = f"/businessobjects/custom/{self.model}/bo.clearEntitySet"
+
+        payload: dict = {
+            "entitySet": self.entity["plural"],
+            "mode": "truncate"
+        }
+        
+        success, response = self.execute_request("POST", url, payload)
+        
+        if success:
+            log.info(f"Entity '{self.entity['name']}' truncated successfully")
+            return True
+        else:
+            log.error(f"Failed to truncate entity '{self.entity['name']}'")
+            return False

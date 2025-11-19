@@ -39,6 +39,7 @@ config: dict = {
                     "api_key": os.environ.get("D3_API_KEY"),
                     "batch_size": 10,
                     "model": "latescanning",
+                    "truncate_before_load": True,
                     "entity": {
                         "name": "ItemLedgerEntry",
                         "plural": "ItemLedgerEntries",
