@@ -95,7 +95,7 @@ if __name__ == "__main__":
                         data = transformer.transform(data)
                         transform_end_time = time.time()
                         transform_duration = transform_end_time - transform_start_time
-                        log.info(f"Transformed data for process {process_name}: {len(data.get('items', []))} items")
+                        log.info(f"Tranpipsformed data for process {process_name}: {len(data.get('items', []))} items")
                         log.info(f"Transformation duration for process {process_name}: {transform_duration:.2f} seconds")
                     else:
                         log.error(f"No data to transform for process: {process_name}")
