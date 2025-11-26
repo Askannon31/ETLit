@@ -35,6 +35,7 @@ class ETLLoadMSSQL(ETLLoadBase):
         self.connection_string = f'DRIVER={self.driver};SERVER={self.server};DATABASE={self.database};UID={self.username};PWD={self.password}'
         self.mapping = config.get('mappings', {})
         self.conn = None
+        self.truncate_before_load = config.get('truncate_before_load', True)
 
     def connect(self):
         """
@@ -77,17 +78,25 @@ class ETLLoadMSSQL(ETLLoadBase):
         """
         try:
             cursor = self.conn.cursor()
+
+            if self.truncate_before_load:
+                table_name = self.config.get('table', 'target_table')
+                cursor.execute(f"TRUNCATE TABLE {table_name}")
+                log.info(f"Truncated table '{table_name}' before loading new data.")
+
             insert_statement = self.config.get('insert_statement', '')
             # for each entry (dict) in data['items'], format and execute the insert statement
             for item in data.get('items', []):
                 formatted_statement = insert_statement
                 for key, value in item.items():
                     mapping_field = self.mapping.get(key, key)
-                    formatted_statement = formatted_statement.replace(f"@{mapping_field}", f"{value}")
+                    formatted_statement = formatted_statement.replace(f"@{mapping_field}@", f"{value}")
                 log.debug(f"Formatted insert statement: {formatted_statement}")
                 cursor.execute(formatted_statement)
             self.conn.commit()
             log.info("Data loaded successfully.")
+            # Close connection
+            self.conn.close()
             return True
         except Exception as e:
             log.error(f"Load failed: {e}")
