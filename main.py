@@ -74,6 +74,7 @@ if __name__ == "__main__":
                 log.info(f"Extraction duration for process {process_name}: {extract_duration:.2f} seconds")
             else:
                 log.error(f"Extractor setup failed for process: {process_name}")
+                continue
         except Exception as e:
             log.error(f"Exception during extraction for process {process_name}: {e}")
             continue
@@ -101,6 +102,7 @@ if __name__ == "__main__":
                         log.error(f"No data to transform for process: {process_name}")
                 else:
                     log.error(f"Transformer setup failed for process: {process_name}")
+                    continue
             except Exception as e:
                 log.error(f"Exception during transformation for process {process_name}: {e}")
                 continue

@@ -29,7 +29,29 @@ class ETLExtractCSVFile(ETLExtractBase):
         return f"ETLExtractCSVFile({self.file_path})"
 
     def setup(self) -> bool:
-        # Setup logic for CSV extraction
+        # Check if file path ends with *
+        # If not, search for the specified file provided in the configuration
+        # Else search for any csv file in the directory and use the first one found
+        if self.file_path and not self.file_path.lower().endswith(".csv"):
+            log.info(f"Searching for specified file: {self.file_path}")
+            import os
+            if not os.path.isfile(self.file_path):
+                log.warning(f"Specified file not found: {self.file_path}")
+                
+            if self.file_path.endswith("*"):
+                log.info(f"Searching for any CSV file in directory: {self.file_path}")
+                directory = os.path.dirname(self.file_path)
+                file_found = False
+                for file in os.listdir(directory):
+                    if file.lower().endswith(".csv"):
+                        self.file_path = os.path.join(directory, file)
+                        log.info(f"Found CSV file: {self.file_path}")
+                        file_found = True
+                        break
+                if not file_found:
+                    log.error(f"No CSV file found in directory: {directory}")
+                    self.file_path = ""
+            
         if not self.file_path:
             log.error("No file path provided for CSV extraction.")
             return False
