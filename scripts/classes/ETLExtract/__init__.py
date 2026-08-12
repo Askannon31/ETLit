@@ -6,6 +6,7 @@ from scripts.classes.ETLExtract.ETLExtractBase import ETLExtractBase
 from scripts.classes.ETLExtract.ETLExtractGevisApi import ETLExtractGevisApi
 from scripts.classes.ETLExtract.ETLExtractCSVFile import ETLExtractCSVFile
 from scripts.classes.ETLExtract.ETLExtractMSSQL import ETLExtractMSSQL
+from scripts.classes.ETLExtract.ETLExtractPostgres import ETLExtractPostgres
 
 
 class ETLExtractFactory:
@@ -21,5 +22,7 @@ class ETLExtractFactory:
             return ETLExtractCSVFile(config)
         elif extractor_type == "mssql":
             return ETLExtractMSSQL(config)
+        elif extractor_type == "postgres":
+            return ETLExtractPostgres(config)
         else:
             raise ValueError(f"Unknown ETLExtract type: {extractor_type}")

@@ -187,6 +187,7 @@ pip list
 Prüfe, ob folgende Pakete installiert sind:
 - requests
 - pyodbc (für MSSQL)
+- psycopg (für PostgreSQL)
 - python-dotenv (optional)
 
 ### Test 3: ETLit starten

@@ -134,7 +134,57 @@ Extrahiert Daten aus einer Microsoft SQL Server Datenbank.
 | `query` | string | Ja | SQL-SELECT Statement |
 | `mapping` | array | Ja | Feld-Zuordnung mit Typen |
 
-### 3. CSV-Datei
+### 3. PostgreSQL Datenbank
+
+Extrahiert Daten aus einer PostgreSQL Datenbank.
+
+```python
+"extraction": {
+    "type": "postgres",
+    "name": "PostgreSQL Quelle",
+
+    # Verbindungsdaten
+    "connection": {
+        "host": "localhost",
+        "port": 5432,
+        "database": "my_database",
+        "username": os.environ.get("POSTGRES_USERNAME"),
+        "password": os.environ.get("POSTGRES_PASSWORD"),
+        "sslmode": "prefer",          # Optional
+        "connect_timeout": 10           # Optional
+    },
+
+    # SQL-Abfrage
+    "schema": "public",               # Optional
+    "table": "my_table",              # Optional wenn query gesetzt ist
+    "query": "SELECT id, name FROM public.my_table",
+
+    # Feld-Mapping mit Datentypen
+    "mapping": [
+        {
+            "target_field": "id",
+            "data_type": "string"
+        },
+        {
+            "target_field": "name",
+            "data_type": "string"
+        }
+    ]
+}
+```
+
+**Parameter:**
+
+| Parameter | Typ | Erforderlich | Beschreibung |
+|-----------|-----|--------------|--------------|
+| `type` | string | Ja | Muss "postgres" sein |
+| `connection` | object | Ja | PostgreSQL-Verbindung |
+| `query` | string | Nein | SQL-SELECT Statement (hat Vorrang vor `table`) |
+| `table` | string | Nein | Tabellenname (Fallback wenn `query` nicht gesetzt) |
+| `schema` | string | Nein | Schema für `table` (Standard: "public") |
+| `mapping` | array/object | Ja | Feld-Zuordnung |
+
+### 4. CSV-Datei
 
 Extrahiert Daten aus einer lokalen CSV-Datei.
 
@@ -533,7 +583,7 @@ def validate_config():
                 return False
         
         # Prüfe Extraction-Type
-        valid_extraction_types = ["gevisapi", "mssql", "csvfile"]
+        valid_extraction_types = ["gevisapi", "mssql", "postgres", "csvfile"]
         if process["extraction"]["type"] not in valid_extraction_types:
             print(f"  ERROR: Invalid extraction type")
             return False
