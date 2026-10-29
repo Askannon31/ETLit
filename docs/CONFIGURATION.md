@@ -2,6 +2,24 @@
 
 Diese Dokumentation erklärt alle Konfigurationsoptionen von ETLit im Detail.
 
+## Konfigurationsdatei auswählen
+
+Ohne zusätzliches Argument verwendet ETLit `config/config.py`:
+
+```bash
+python main.py
+```
+
+Weitere Python-Konfigurationen können direkt im Ordner `config` abgelegt und
+über ihren Dateinamen ausgewählt werden:
+
+```bash
+python main.py config_production.py
+```
+
+Es wird nur ein Dateiname akzeptiert; die Datei muss direkt im Ordner `config`
+liegen. Unterordner und Pfade außerhalb dieses Ordners werden nicht durchsucht.
+
 ## 📋 Übersicht
 
 ETLit verwendet eine Python-basierte Konfiguration in `config/config.py`. Jeder ETL-Prozess besteht aus drei Hauptteilen:

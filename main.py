@@ -8,9 +8,12 @@
 ####################################################################################################
 #                                           Imports                                                #
 ####################################################################################################
+import argparse
+import importlib.util
 import json
 import logging
 import logging.config
+from pathlib import Path
 import time
 
 
@@ -20,6 +23,26 @@ from scripts.utils.logger import setup_logger
 ####################################################################################################
 #                                          Functions                                               #
 ####################################################################################################
+def load_config(config_filename: str) -> dict:
+    config_directory = Path(__file__).resolve().parent / "config"
+    filename = Path(config_filename)
+
+    if filename.name != config_filename or filename.suffix != ".py":
+        raise ValueError("Provide a Python config filename located directly in the config folder.")
+
+    config_path = (config_directory / filename).resolve()
+    if config_path.parent != config_directory.resolve():
+        raise ValueError("The config file must be located directly in the config folder.")
+    if not config_path.is_file():
+        raise FileNotFoundError(f"Config file not found: {config_path}")
+
+    spec = importlib.util.spec_from_file_location(f"_etlit_config_{filename.stem}", config_path)
+    if spec is None or spec.loader is None:
+        raise ImportError(f"Could not load config file: {config_path}")
+
+    config_module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(config_module)
+    return config_module.config
 
 
 ####################################################################################################
@@ -31,8 +54,6 @@ load_dotenv()
 
 
 # Load Config
-from config.config import config
-
 
 # Setup Logger
 with open("config/logging.json", "rt") as file:
@@ -44,6 +65,20 @@ log = logging.getLogger(__name__)
 #                                            Script                                                #
 ####################################################################################################
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Run ETLit with a selected configuration.")
+    parser.add_argument(
+        "config_file",
+        nargs="?",
+        default="config.py",
+        help="Python config filename from the config folder (default: config.py)",
+    )
+    args = parser.parse_args()
+
+    try:
+        config = load_config(args.config_file)
+    except (FileNotFoundError, ValueError) as error:
+        parser.error(str(error))
+
     log.info("-------------------- Start Script --------------------")
     processes: list = config.get("ETL", {}).get("processes", [])
     log.info(f"Loaded {len(processes)} processes from configuration.")

@@ -100,6 +100,13 @@ MSSQL_PASSWORD=your_password
 python main.py
 ```
 
+Standardmäßig wird `config/config.py` geladen. Für eine andere Konfiguration
+kann der Dateiname aus dem Ordner `config` als Argument übergeben werden:
+
+```bash
+python main.py config_production.py
+```
+
 ### Beispiel-Konfiguration
 
 ```python
