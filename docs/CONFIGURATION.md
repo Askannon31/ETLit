@@ -219,7 +219,10 @@ und sind für den Loader `mssql_tables` gedacht (keine Transformation möglich).
         "password": os.environ.get("POSTGRES_PASSWORD")
     },
     "schema": "public",
-    "tables": ["customers", "sales.orders"],
+    "tables": [
+        "customers",
+        {"table": "sales.orders", "where": "order_date >= '2024-01-01'"}
+    ],
     "chunk_size": 10000,
     "include_primary_key": True
 }
@@ -231,7 +234,7 @@ und sind für den Loader `mssql_tables` gedacht (keine Transformation möglich).
 |-----------|-----|--------------|--------------|
 | `type` | string | Ja | Muss "postgres_tables" sein |
 | `connection` | object | Ja | PostgreSQL-Verbindung |
-| `tables` | array | Ja | Tabellen, optional mit Schema (`schema.tabelle`) |
+| `tables` | array | Ja | Tabellen, optional mit Schema (`schema.tabelle`). Pro Eintrag entweder Text oder `{"table": ..., "where": ...}` für einen optionalen WHERE-Filter (SQL ohne `WHERE`) |
 | `schema` | string | Nein | Standard-Schema für Tabellen ohne Schema (Standard: "public") |
 | `chunk_size` | int | Nein | Zeilen pro Block (Standard: 10000) |
 | `include_primary_key` | bool | Nein | Primary Key auslesen (Standard: False) |

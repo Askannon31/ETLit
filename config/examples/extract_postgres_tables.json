@@ -13,7 +13,10 @@
     "schema": "public",
     "tables": [
         "customers",
-        "sales.orders"
+        {
+            "table": "sales.orders",
+            "where": "order_date >= '2024-01-01' AND status <> 'cancelled'"
+        }
     ],
     "chunk_size": 10000,
     "include_primary_key": true

@@ -2,8 +2,12 @@
 # Class to Load complete tables into a MSSQL Database (drop + create + insert)                                         #
 ########################################################################################################################
 import datetime
+import decimal
 import json
 import logging
+import re
+
+import pyodbc
 
 from scripts.classes.ETLLoad.ETLLoadMSSQL import ETLLoadMSSQL
 
@@ -16,6 +20,8 @@ log = logging.getLogger(__name__)
 
 NVARCHAR_MAX_LENGTH = 4000
 DECIMAL_MAX_PRECISION = 38
+DECIMAL_CONTEXT = decimal.Context(prec=DECIMAL_MAX_PRECISION)
+DECIMAL_TYPE_PATTERN = re.compile(r"^DECIMAL\((\d+),(\d+)\)$")
 
 
 ########################################################################################################################
@@ -42,6 +48,22 @@ def _to_iso(value):
 
 def _to_uuid_text(value):
     return None if value is None else str(value)
+
+
+def _decimal_converter(scale: int):
+    exponent = decimal.Decimal(1).scaleb(-scale)
+
+    def convert(value):
+        if value is None:
+            return None
+        if not isinstance(value, decimal.Decimal):
+            value = decimal.Decimal(str(value))
+        # SQL Server has no NaN/Infinity for DECIMAL
+        if not value.is_finite():
+            return None
+        return value.quantize(exponent, rounding=decimal.ROUND_HALF_UP, context=DECIMAL_CONTEXT)
+
+    return convert
 
 
 ########################################################################################################################
@@ -89,10 +111,10 @@ class ETLLoadMSSQLTables(ETLLoadMSSQL):
             return "BIGINT", None
         if data_type == "numeric":
             if precision is None:
-                return "DECIMAL(38,10)", None
+                return "DECIMAL(38,10)", _decimal_converter(10)
             precision = min(int(precision), DECIMAL_MAX_PRECISION)
             scale = min(int(scale or 0), precision)
-            return f"DECIMAL({precision},{scale})", None
+            return f"DECIMAL({precision},{scale})", _decimal_converter(scale)
         if data_type == "real":
             return "REAL", None
         if data_type == "double precision":
@@ -196,6 +218,14 @@ class ETLLoadMSSQLTables(ETLLoadMSSQL):
             placeholders = ", ".join("?" for _ in table["columns"])
             insert_statement = f"INSERT INTO {qualified_name} ({column_list}) VALUES ({placeholders})"
             cursor.fast_executemany = self.fast_executemany
+
+            # Otherwise fast_executemany derives decimal precision from the first row only
+            input_sizes = []
+            for sql_type in column_types:
+                match = DECIMAL_TYPE_PATTERN.match(sql_type)
+                input_sizes.append((pyodbc.SQL_DECIMAL, int(match[1]), int(match[2])) if match else None)
+            if any(input_sizes):
+                cursor.setinputsizes(input_sizes)
 
             total_rows = 0
             start_time = datetime.datetime.now()

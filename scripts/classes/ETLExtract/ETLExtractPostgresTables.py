@@ -91,7 +91,14 @@ class ETLExtractPostgresTables(ETLExtractPostgres):
             self.table_definitions = []
 
             for table_entry in self.tables:
-                schema_name, table_name = self._resolve_schema_and_table(table_entry)
+                if isinstance(table_entry, dict):
+                    table_ref = table_entry.get("table", "")
+                    where_clause = (table_entry.get("where") or "").strip()
+                else:
+                    table_ref = table_entry
+                    where_clause = ""
+
+                schema_name, table_name = self._resolve_schema_and_table(table_ref)
                 columns = self._read_columns(schema_name, table_name)
                 if not columns:
                     log.error(f"Table '{schema_name}.{table_name}' does not exist or has no accessible columns.")
@@ -104,8 +111,10 @@ class ETLExtractPostgresTables(ETLExtractPostgres):
                     "name": table_name,
                     "columns": columns,
                     "primary_key": primary_key,
+                    "where": where_clause,
                 })
-                log.info(f"Read structure of '{schema_name}.{table_name}' ({len(columns)} columns).")
+                filter_info = f", filter: {where_clause}" if where_clause else ""
+                log.info(f"Read structure of '{schema_name}.{table_name}' ({len(columns)} columns{filter_info}).")
 
             # End the read transaction of the metadata queries
             self.conn.rollback()
@@ -122,6 +131,9 @@ class ETLExtractPostgresTables(ETLExtractPostgres):
         table_name = table_definition["name"]
         column_list = ", ".join(self._quote_identifier(column["name"]) for column in table_definition["columns"])
         query = f"SELECT {column_list} FROM {self._qualified_table_name(schema_name, table_name)}"
+        if table_definition.get("where"):
+            # Filter is raw SQL from the trusted config file
+            query += f" WHERE ({table_definition['where']})"
 
         cursor = self.conn.cursor(name=f"etlit_{uuid.uuid4().hex}")
         try:

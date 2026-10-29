@@ -172,6 +172,7 @@ config: dict = {
                     "schema": "public",
                     "tables": [
                         "your_table",
+                        # {"table": "your_schema.your_table", "where": "created_at >= '2024-01-01'"},
                     ],
                     "chunk_size": 10000,
                     "include_primary_key": True
