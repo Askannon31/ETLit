@@ -94,9 +94,13 @@ class ETLExtractPostgresTables(ETLExtractPostgres):
                 if isinstance(table_entry, dict):
                     table_ref = table_entry.get("table", "")
                     where_clause = (table_entry.get("where") or "").strip()
+                    target_table = (table_entry.get("target_table") or "").strip()
+                    column_mapping = table_entry.get("column_mapping") or {}
                 else:
                     table_ref = table_entry
                     where_clause = ""
+                    target_table = ""
+                    column_mapping = {}
 
                 schema_name, table_name = self._resolve_schema_and_table(table_ref)
                 columns = self._read_columns(schema_name, table_name)
@@ -105,10 +109,19 @@ class ETLExtractPostgresTables(ETLExtractPostgres):
                     self.conn.close()
                     return False
 
+                unknown_columns = set(column_mapping) - {column["name"] for column in columns}
+                if unknown_columns:
+                    log.error(f"Column mapping for '{schema_name}.{table_name}' contains unknown columns: {', '.join(sorted(unknown_columns))}")
+                    self.conn.close()
+                    return False
+                for column in columns:
+                    column["target_name"] = column_mapping.get(column["name"], column["name"])
+
                 primary_key = self._read_primary_key(schema_name, table_name) if self.include_primary_key else []
                 self.table_definitions.append({
                     "source_schema": schema_name,
                     "name": table_name,
+                    "target_name": target_table or table_name,
                     "columns": columns,
                     "primary_key": primary_key,
                     "where": where_clause,

@@ -172,7 +172,8 @@ config: dict = {
                     "schema": "public",
                     "tables": [
                         "your_table",
-                        # {"table": "your_schema.your_table", "where": "created_at >= '2024-01-01'"},
+                        # {"table": "your_schema.your_table", "where": "created_at >= '2024-01-01'",
+                        #  "target_table": "YourTable", "column_mapping": {"created_at": "CreatedAt"}},
                     ],
                     "chunk_size": 10000,
                     "include_primary_key": True

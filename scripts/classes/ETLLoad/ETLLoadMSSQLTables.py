@@ -179,17 +179,18 @@ class ETLLoadMSSQLTables(ETLLoadMSSQL):
             return False
 
     def _recreate_table(self, cursor, table: dict, column_types: list[str]):
-        table_name = table["name"]
+        table_name = table.get("target_name") or table["name"]
         qualified_name = self._qualified_table_name(table_name)
+        target_names = {column["name"]: column.get("target_name") or column["name"] for column in table["columns"]}
 
         column_definitions = [
-            f"{self._quote_identifier(column['name'])} {sql_type} {'NULL' if column.get('nullable', True) else 'NOT NULL'}"
+            f"{self._quote_identifier(target_names[column['name']])} {sql_type} {'NULL' if column.get('nullable', True) else 'NOT NULL'}"
             for column, sql_type in zip(table["columns"], column_types)
         ]
 
-        primary_key = table.get("primary_key") or []
+        primary_key = [target_names.get(column_name, column_name) for column_name in table.get("primary_key") or []]
         if self.create_primary_key and primary_key:
-            types_by_name = {column["name"]: sql_type for column, sql_type in zip(table["columns"], column_types)}
+            types_by_name = {target_names[column["name"]]: sql_type for column, sql_type in zip(table["columns"], column_types)}
             if any("(MAX)" in types_by_name.get(column_name, "") for column_name in primary_key):
                 log.warning(f"Primary key of '{table_name}' contains a (MAX) column and is not created.")
             else:
@@ -203,7 +204,7 @@ class ETLLoadMSSQLTables(ETLLoadMSSQL):
         log.info(f"Created table {qualified_name}.")
 
     def _load_table(self, table: dict) -> bool:
-        table_name = table["name"]
+        table_name = table.get("target_name") or table["name"]
         qualified_name = self._qualified_table_name(table_name)
         rows = table["rows"]
         cursor = self.conn.cursor()
@@ -214,7 +215,7 @@ class ETLLoadMSSQLTables(ETLLoadMSSQL):
 
             self._recreate_table(cursor, table, column_types)
 
-            column_list = ", ".join(self._quote_identifier(column["name"]) for column in table["columns"])
+            column_list = ", ".join(self._quote_identifier(column.get("target_name") or column["name"]) for column in table["columns"])
             placeholders = ", ".join("?" for _ in table["columns"])
             insert_statement = f"INSERT INTO {qualified_name} ({column_list}) VALUES ({placeholders})"
             cursor.fast_executemany = self.fast_executemany
@@ -264,7 +265,7 @@ class ETLLoadMSSQLTables(ETLLoadMSSQL):
         try:
             for table in tables:
                 if not self._load_table(table):
-                    failed_tables.append(table["name"])
+                    failed_tables.append(table.get("target_name") or table["name"])
         finally:
             close_source = data.get("close")
             if callable(close_source):

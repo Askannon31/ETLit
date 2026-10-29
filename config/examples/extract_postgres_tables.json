@@ -15,7 +15,12 @@
         "customers",
         {
             "table": "sales.orders",
-            "where": "order_date >= '2024-01-01' AND status <> 'cancelled'"
+            "where": "order_date >= '2024-01-01' AND status <> 'cancelled'",
+            "target_table": "Orders",
+            "column_mapping": {
+                "order_id": "OrderId",
+                "order_date": "OrderDate"
+            }
         }
     ],
     "chunk_size": 10000,

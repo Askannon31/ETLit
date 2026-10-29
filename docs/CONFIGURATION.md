@@ -221,7 +221,8 @@ und sind für den Loader `mssql_tables` gedacht (keine Transformation möglich).
     "schema": "public",
     "tables": [
         "customers",
-        {"table": "sales.orders", "where": "order_date >= '2024-01-01'"}
+        {"table": "sales.orders", "where": "order_date >= '2024-01-01'",
+         "target_table": "Orders", "column_mapping": {"order_id": "OrderId"}}
     ],
     "chunk_size": 10000,
     "include_primary_key": True
@@ -234,7 +235,7 @@ und sind für den Loader `mssql_tables` gedacht (keine Transformation möglich).
 |-----------|-----|--------------|--------------|
 | `type` | string | Ja | Muss "postgres_tables" sein |
 | `connection` | object | Ja | PostgreSQL-Verbindung |
-| `tables` | array | Ja | Tabellen, optional mit Schema (`schema.tabelle`). Pro Eintrag entweder Text oder `{"table": ..., "where": ...}` für einen optionalen WHERE-Filter (SQL ohne `WHERE`) |
+| `tables` | array | Ja | Tabellen, optional mit Schema (`schema.tabelle`). Pro Eintrag entweder Text oder ein Objekt mit `table` und den optionalen Feldern `where` (WHERE-Filter, SQL ohne `WHERE`), `target_table` (Tabellenname in MSSQL) und `column_mapping` (`{"postgres_spalte": "mssql_spalte"}`, nicht gemappte Spalten behalten ihren Namen) |
 | `schema` | string | Nein | Standard-Schema für Tabellen ohne Schema (Standard: "public") |
 | `chunk_size` | int | Nein | Zeilen pro Block (Standard: 10000) |
 | `include_primary_key` | bool | Nein | Primary Key auslesen (Standard: False) |
