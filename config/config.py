@@ -153,6 +153,45 @@ config: dict = {
                     }
                 }
             },
+            {
+                "name": "Copy Postgres Tables to MSSQL",
+                "description": "Copy complete tables (structure + data) from PostgreSQL to MSSQL",
+                "active": False,
+                "extraction": {
+                    "type": "postgres_tables",
+                    "name": "PostgreSQL Tabellen",
+                    "connection": {
+                        "host": os.environ.get("POSTGRES_HOST"),
+                        "port": 5432,
+                        "database": os.environ.get("POSTGRES_DATABASE"),
+                        "username": os.environ.get("POSTGRES_USERNAME"),
+                        "password": os.environ.get("POSTGRES_PASSWORD"),
+                        "sslmode": "prefer",
+                        "connect_timeout": 30
+                    },
+                    "schema": "public",
+                    "tables": [
+                        "your_table",
+                    ],
+                    "chunk_size": 10000,
+                    "include_primary_key": True
+                },
+                "transformation": {},
+                "loading": {
+                    "type": "mssql_tables",
+                    "name": "MSSQL Tabellen",
+                    "connection": {
+                        "server": os.environ.get("MSSQL_SERVER"),
+                        "database": os.environ.get("MSSQL_DATABASE"),
+                        "username": os.environ.get("MSSQL_USERNAME"),
+                        "password": os.environ.get("MSSQL_PASSWORD"),
+                        "driver": "{ODBC Driver 17 for SQL Server}"
+                    },
+                    "target_schema": "dbo",
+                    "create_primary_key": True,
+                    "fast_executemany": True
+                }
+            },
         ]
     }
 }

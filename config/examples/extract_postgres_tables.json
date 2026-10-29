@@ -1,0 +1,20 @@
+{
+    "type": "postgres_tables",
+    "name": "Extract complete tables from a PostgreSQL Database",
+    "connection": {
+        "host": "localhost",
+        "port": 5432,
+        "database": "your_database",
+        "username": "your_username",
+        "password": "your_password",
+        "sslmode": "prefer",
+        "connect_timeout": 10
+    },
+    "schema": "public",
+    "tables": [
+        "customers",
+        "sales.orders"
+    ],
+    "chunk_size": 10000,
+    "include_primary_key": true
+}

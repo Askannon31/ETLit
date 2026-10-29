@@ -202,6 +202,40 @@ Extrahiert Daten aus einer PostgreSQL Datenbank.
 | `schema` | string | Nein | Schema für `table` (Standard: "public") |
 | `mapping` | array/object | Ja | Feld-Zuordnung |
 
+### 3a. PostgreSQL Tabellen (vollständige Kopie)
+
+Liest komplette Tabellen inkl. Spaltenstruktur aus PostgreSQL. Die Zeilen werden blockweise gestreamt
+und sind für den Loader `mssql_tables` gedacht (keine Transformation möglich).
+
+```python
+"extraction": {
+    "type": "postgres_tables",
+    "name": "PostgreSQL Tabellen",
+    "connection": {
+        "host": os.environ.get("POSTGRES_HOST"),
+        "port": 5432,
+        "database": os.environ.get("POSTGRES_DATABASE"),
+        "username": os.environ.get("POSTGRES_USERNAME"),
+        "password": os.environ.get("POSTGRES_PASSWORD")
+    },
+    "schema": "public",
+    "tables": ["customers", "sales.orders"],
+    "chunk_size": 10000,
+    "include_primary_key": True
+}
+```
+
+**Parameter:**
+
+| Parameter | Typ | Erforderlich | Beschreibung |
+|-----------|-----|--------------|--------------|
+| `type` | string | Ja | Muss "postgres_tables" sein |
+| `connection` | object | Ja | PostgreSQL-Verbindung |
+| `tables` | array | Ja | Tabellen, optional mit Schema (`schema.tabelle`) |
+| `schema` | string | Nein | Standard-Schema für Tabellen ohne Schema (Standard: "public") |
+| `chunk_size` | int | Nein | Zeilen pro Block (Standard: 10000) |
+| `include_primary_key` | bool | Nein | Primary Key auslesen (Standard: False) |
+
 ### 4. CSV-Datei
 
 Extrahiert Daten aus einer lokalen CSV-Datei.
@@ -449,6 +483,57 @@ Lädt Daten in eine Microsoft SQL Server Datenbank.
 }
 ```
 
+### 3. MSSQL Tabellen (vollständige Kopie)
+
+Erstellt die Tabellen aus `postgres_tables` in MSSQL und füllt sie. Existierende Tabellen werden
+gelöscht und neu erstellt (DROP + CREATE). Das Zielschema wird bei Bedarf angelegt.
+
+```python
+"loading": {
+    "type": "mssql_tables",
+    "name": "MSSQL Tabellen",
+    "connection": {
+        "server": os.environ.get("MSSQL_SERVER"),
+        "database": os.environ.get("MSSQL_DATABASE"),
+        "username": os.environ.get("MSSQL_USERNAME"),
+        "password": os.environ.get("MSSQL_PASSWORD"),
+        "driver": "{ODBC Driver 17 for SQL Server}"
+    },
+    "target_schema": "dbo",
+    "create_primary_key": True,
+    "fast_executemany": True
+}
+```
+
+**Parameter:**
+
+| Parameter | Typ | Erforderlich | Beschreibung |
+|-----------|-----|--------------|--------------|
+| `type` | string | Ja | Muss "mssql_tables" sein |
+| `connection` | object | Ja | MSSQL-Verbindung |
+| `target_schema` | string | Nein | Zielschema (Standard: "dbo") |
+| `create_primary_key` | bool | Nein | Primary Key anlegen, wenn vom Extractor geliefert (Standard: False) |
+| `fast_executemany` | bool | Nein | pyodbc Bulk-Insert (Standard: True); bei Speicherproblemen mit NVARCHAR(MAX) deaktivieren |
+
+**Typ-Mapping PostgreSQL → MSSQL:**
+
+| PostgreSQL | MSSQL |
+|------------|-------|
+| smallint / integer / bigint | SMALLINT / INT / BIGINT |
+| numeric(p,s) | DECIMAL(p,s) (ohne Angabe: DECIMAL(38,10)) |
+| real / double precision | REAL / FLOAT |
+| boolean | BIT |
+| varchar(n) / char(n) | NVARCHAR(n) / NCHAR(n), > 4000 → NVARCHAR(MAX) |
+| text | NVARCHAR(MAX) |
+| date / time / timestamp | DATE / TIME / DATETIME2 |
+| timestamptz | DATETIMEOFFSET |
+| uuid | UNIQUEIDENTIFIER |
+| bytea | VARBINARY(MAX) |
+| json / jsonb / Arrays | NVARCHAR(MAX) (JSON) |
+| Sonstige | NVARCHAR (Textdarstellung) |
+
+Indizes, Fremdschlüssel, Defaults und Identity-Spalten werden nicht übernommen.
+
 ## 🔧 Erweiterte Konfiguration
 
 ### Mehrere Prozesse
@@ -601,7 +686,7 @@ def validate_config():
                 return False
         
         # Prüfe Extraction-Type
-        valid_extraction_types = ["gevisapi", "mssql", "postgres", "csvfile"]
+        valid_extraction_types = ["gevisapi", "mssql", "postgres", "postgres_tables", "csvfile"]
         if process["extraction"]["type"] not in valid_extraction_types:
             print(f"  ERROR: Invalid extraction type")
             return False

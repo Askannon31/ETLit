@@ -6,6 +6,7 @@ from scripts.classes.ETLLoad.ETLLoadBase import ETLLoadBase
 from scripts.classes.ETLLoad.ETLLoadBase import ETLLoadBase
 from scripts.classes.ETLLoad.ETLLoadD3BusinessObjects import ETLLoadD3BusinessObjects
 from scripts.classes.ETLLoad.ETLLoadMSSQL import ETLLoadMSSQL
+from scripts.classes.ETLLoad.ETLLoadMSSQLTables import ETLLoadMSSQLTables
 from scripts.classes.ETLLoad.ETLLoadCSV import ETLLoadCSV
 
 
@@ -20,6 +21,8 @@ class ETLLoadFactory:
             return ETLLoadD3BusinessObjects(config)
         elif loader_type == "mssql":
             return ETLLoadMSSQL(config)
+        elif loader_type == "mssql_tables":
+            return ETLLoadMSSQLTables(config)
         elif loader_type == "csv":
             return ETLLoadCSV(config)
         else:
