@@ -28,7 +28,11 @@ def load_config(config_filename: str) -> dict:
     filename = Path(config_filename)
 
     if filename.name != config_filename or filename.suffix != ".py":
-        raise ValueError("Provide a Python config filename located directly in the config folder.")
+        # raise ValueError("Provide a Python config filename located directly in the config folder.")
+        # If the filename does not has a .py extension add it and search with that filename
+        if filename.suffix != ".py":
+            log.debug(f"Adding .py extension to config filename: {filename}")
+            filename = filename.with_suffix(".py")
 
     config_path = (config_directory / filename).resolve()
     if config_path.parent != config_directory.resolve():
