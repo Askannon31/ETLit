@@ -17,14 +17,15 @@ from pathlib import Path
 import time
 
 
-from scripts.utils.logger import setup_logger
+CONFIG_DIRECTORY = Path(__file__).resolve().parent / "config"
+log = logging.getLogger(__name__)
 
 
 ####################################################################################################
 #                                          Functions                                               #
 ####################################################################################################
 def load_config(config_filename: str) -> dict:
-    config_directory = Path(__file__).resolve().parent / "config"
+    config_directory = CONFIG_DIRECTORY
     filename = Path(config_filename)
 
     if filename.name != config_filename or filename.suffix != ".py":
@@ -49,41 +50,17 @@ def load_config(config_filename: str) -> dict:
     return config_module.config
 
 
-####################################################################################################
-#                                            Setup                                                 #
-####################################################################################################
-# Loat .env file
-from dotenv import load_dotenv
-load_dotenv()
+def setup_logging() -> None:
+    from dotenv import load_dotenv
+
+    load_dotenv()
+    with open(CONFIG_DIRECTORY / "logging.json", "rt") as file:
+        logger_config = json.load(file)
+    logging.config.dictConfig(logger_config)
 
 
-# Load Config
-
-# Setup Logger
-with open("config/logging.json", "rt") as file:
-    logger_config = json.load(file)
-logging.config.dictConfig(logger_config)
-log = logging.getLogger(__name__)
-
-####################################################################################################
-#                                            Script                                                #
-####################################################################################################
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Run ETLit with a selected configuration.")
-    parser.add_argument(
-        "config_file",
-        nargs="?",
-        default="config.py",
-        help="Python config filename from the config folder (default: config.py)",
-    )
-    args = parser.parse_args()
-
-    try:
-        config = load_config(args.config_file)
-    except (FileNotFoundError, ValueError) as error:
-        parser.error(str(error))
-
-    log.info("-------------------- Start Script --------------------")
+def run_config(config: dict) -> bool:
+    successful = True
     processes: list = config.get("ETL", {}).get("processes", [])
     log.info(f"Loaded {len(processes)} processes from configuration.")
 
@@ -96,7 +73,7 @@ if __name__ == "__main__":
 
         # ETL Extract
         extract_config: dict = process_config.get("extraction", {})
-        data: dict = None
+        data = None
         try:
             from scripts.classes.ETLExtract import ETLExtractFactory
 
@@ -113,9 +90,11 @@ if __name__ == "__main__":
                 log.info(f"Extraction duration for process {process_name}: {extract_duration:.2f} seconds")
             else:
                 log.error(f"Extractor setup failed for process: {process_name}")
+                successful = False
                 continue
         except Exception as e:
             log.error(f"Exception during extraction for process {process_name}: {e}")
+            successful = False
             continue
 
         # ETL Transform
@@ -139,19 +118,23 @@ if __name__ == "__main__":
                         log.info(f"Transformation duration for process {process_name}: {transform_duration:.2f} seconds")
                     else:
                         log.error(f"No data to transform for process: {process_name}")
+                        successful = False
+                        continue
                 else:
                     log.error(f"Transformer setup failed for process: {process_name}")
+                    successful = False
                     continue
             except Exception as e:
                 log.error(f"Exception during transformation for process {process_name}: {e}")
+                successful = False
                 continue
 
         # ETL Load
-        load_config: dict = process_config.get("loading", {})
+        loading_config: dict = process_config.get("loading", {})
         try:
             from scripts.classes.ETLLoad import ETLLoadFactory
 
-            loader = ETLLoadFactory.create_loader(load_config)
+            loader = ETLLoadFactory.create_loader(loading_config)
             log.info(f"Created loader: {loader}")
 
             if loader.setup():
@@ -161,11 +144,97 @@ if __name__ == "__main__":
                     load_result = loader.load(data)
                     load_end_time = time.time()
                     load_duration = load_end_time - load_start_time
-                    log.info(f"Loaded data for process {process_name}:")
+                    if load_result:
+                        log.info(f"Loaded data for process {process_name}:")
+                    else:
+                        log.error(f"Loading failed for process: {process_name}")
+                        successful = False
                     log.info(f"Load duration for process {process_name}: {load_duration:.2f} seconds")
                 else:
                     log.error(f"No data to load for process: {process_name}")
+                    successful = False
             else:
                 log.error(f"Loader setup failed for process: {process_name}")
+                successful = False
         except Exception as e:
             log.error(f"Exception occurred while loading data for process {process_name}: {e}")
+            successful = False
+
+    return successful
+
+
+def main(argv=None) -> int:
+    parser = argparse.ArgumentParser(description="Run ETLit with selected configurations.")
+    parser.add_argument(
+        "config_file",
+        nargs="?",
+        help="Python config filename from the config folder (default: config.py)",
+    )
+    parser.add_argument(
+        "--execute-all",
+        action="store_true",
+        help="Run all Python configurations in the config folder sequentially",
+    )
+    args = parser.parse_args(argv)
+    if args.execute_all and args.config_file is not None:
+        parser.error("config_file cannot be combined with --execute-all")
+
+    try:
+        setup_logging()
+    except Exception:
+        log.exception("Could not initialize ETLit logging or environment.")
+        return 1
+
+    log.info("-------------------- Start Script --------------------")
+    if args.execute_all:
+        config_files = sorted(
+            (
+                path.name for path in CONFIG_DIRECTORY.glob("*.py")
+                if path.is_file() and path.name != "__init__.py"
+            ),
+            key=lambda name: (name.casefold(), name),
+        )
+    else:
+        config_files = [args.config_file or "config.py"]
+
+    if not config_files:
+        log.error("No Python configurations found in %s.", CONFIG_DIRECTORY)
+        return 1
+
+    failed_configs = 0
+    for config_filename in config_files:
+        log.info("Starting configuration: %s", config_filename)
+        try:
+            config = load_config(config_filename)
+        except (FileNotFoundError, ValueError) as error:
+            if not args.execute_all:
+                parser.error(str(error))
+            log.exception("Could not load configuration: %s", config_filename)
+            failed_configs += 1
+            continue
+        except Exception:
+            log.exception("Could not load configuration: %s", config_filename)
+            failed_configs += 1
+            continue
+
+        try:
+            successful = run_config(config)
+        except Exception:
+            log.exception("Exception while running configuration: %s", config_filename)
+            successful = False
+        if not successful:
+            failed_configs += 1
+            log.error("Configuration failed: %s", config_filename)
+        else:
+            log.info("Configuration completed: %s", config_filename)
+
+    log.info(
+        "Configuration summary: %s successful, %s failed.",
+        len(config_files) - failed_configs,
+        failed_configs,
+    )
+    return 1 if failed_configs else 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

@@ -107,6 +107,25 @@ kann der Dateiname aus dem Ordner `config` als Argument übergeben werden:
 python main.py config_production.py
 ```
 
+### Alle Konfigurationen ausführen
+
+```bash
+python main.py --execute-all
+```
+
+Dieser Aufruf verarbeitet alle `.py`-Dateien direkt im Ordner `config`, inklusive
+`config.py`, alphabetisch nach Dateiname (ohne Beachtung der Gross-/Kleinschreibung).
+`__init__.py`, Unterordner, JSON-Dateien und Sicherungskopien werden ignoriert.
+Jede Konfiguration wird erst unmittelbar vor ihrer Ausführung geladen; ihre aktiven
+Prozesse laufen nacheinander, bevor die nächste Konfiguration beginnt.
+
+Nach einem Fehler werden die weiteren Prozesse und Konfigurationen trotzdem
+ausgeführt. Am Ende erscheint eine Zusammenfassung erfolgreicher und fehlgeschlagener
+Konfigurationen. Der Exitcode ist `0` bei Erfolg und `1` bei Laufzeitfehlern oder
+wenn keine passenden Dateien gefunden wurden. Ein Dateiname und `--execute-all`
+dürfen nicht gemeinsam angegeben werden (Exitcode `2`). Auch ein ungültiger
+Einzeldateipfad liefert weiterhin Exitcode `2`.
+
 ### Beispiel-Konfiguration
 
 ```python
